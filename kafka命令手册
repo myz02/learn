@@ -1,0 +1,14 @@
+采用2.11版本
+启动kafka(要依靠zookeeper所以先启动zk)
+``` bin/zookeeper-server-start.sh config/zookeeper.properties
+``` bin/kafka-server-start.sh config/server.propertes
+
+创建topic(partitions是分区数 replication-factor是副本数)
+```bin/kafka-topics.sh --create --zookeeper node03:2181,node04:2181,node05:2181 --partitions 1 --replication-factor 1--topic test1
+列出topic
+```bin/kafka-topics.sh --zookeeper node03:2181,node04:2181,node05:2181 -list
+
+创建生产者
+```bin/kafka-console-producer.sh --broker-list node03:9092,node04:9092,node05:9092 --topic test1
+创建消费者
+```bin/kafka-console-producer.sh --bootstrap-server node03:9092,node04:9092,node05:9092 --topic test1 --consumer-property group.id=group1 --from-beginning
