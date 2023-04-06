@@ -1,7 +1,7 @@
 采用2.11版本
 启动kafka(要依靠zookeeper所以先启动zk)
 ``` bin/zookeeper-server-start.sh config/zookeeper.properties
-``` bin/kafka-server-start.sh config/server.propertes
+``` bin/kafka-server-start.sh config/server.properties
 
 创建topic(partitions是分区数 replication-factor是副本数)
 ```bin/kafka-topics.sh --create --zookeeper node03:2181,node04:2181,node05:2181 --partitions 1 --replication-factor 1--topic test1
