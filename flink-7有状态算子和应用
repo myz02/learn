@@ -29,4 +29,33 @@
     算子的默认最大并行度取决于应用首个版本中算子的并行度，如果并行度小于等于128，则最大并行度会设置为128，大于128另说
     
 --性能和鲁棒性
+    --状态后端的选择
+        主要有三种状态后端：emoryStateBackend, FsStateBackend, RocksDBStateBackend
+         emoryStateBackend: 以常规对象的形式存储在taskmanager的JVM的堆中，如果状态变得很大，所在的JVM可能会连同运行在该JVM上的任务都OOM而终止
+                                生成检查点时，会将状态发送到jobmanager并保存到它的堆内存中。
+         FsStateBackend：和内存状态后端一样保存在JVM的堆中，但是生成检查点的时候不会存储到jobmanager中，而是会写入到远程持久化文件系统中。
+         RocksDBStateBackend：把状态存储到rocksdb实例中，将数据保存到磁盘中，需要对数据进行序列化和反序列化，检查点写入远程持久化文件系统，
+                                且支持增量检查点，对于大状态是非常好的选择。
+         ```env.setStateBackend(new FsStateBackend("hdfs//...."));   //配置状态后端
+         
+    --状态原语的选择
+        ValueState在更新和访问的时候分别进行完整的序列化和反序列化，ListState会将所有列表头目进行反序列化，但向ListState中添加一个值，
+            会将其附加到最后的操作会更轻量化，因为只会序列化新添加的值。
+        MapState只对读写的键和值进行(反)序列化，遍历的时候会先取出其中的所有序列化好的条目，访问才会反序列化具体的条目。
+        总之：ListState效率大于ValueState(List) ， MapState效率大于ValueState(HashMap)
     
+    --定时器删除状态
+        ```long time = context.timerService().currentProcessingTime() + 1000L;
+           context.timerService().registerProcessingTimeTimer(time); //创建定时器
+           context.timerService().deleteProcessingTimeTimer(time);   //删除定时器
+        定时器到时见了就会调用onTimer方法，onTimer方法，内部逻辑就是定时器到了之后执行的操作。
+        目前定时器支持eventtime和processtime
+        
+--更新有状态应用
+       生成保存点，停止应用，重启新版本
+       更新有状态应用分三种情况：添加有状态或无状态算子、应用中移除某个状态、改变状态语义或者修改算子类型
+       
+        
+        
+        
+        
