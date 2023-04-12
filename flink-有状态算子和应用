@@ -1,0 +1,8 @@
+--实现状态函数
+--在runtimecontext中声明键值分区状态
+    状态原语主要分：valueState、ListState、MapState、ReducingState、AggregatingState
+    主要是在rich函数中open方法进行初始化
+    ```private ValueState<Integer> valueState;
+       valueState = getRuntimeContext().getState(new ValueStateDescriptor<>("value", Integer.class));
+    状态引用对象只提供用于状态访问的接口，而不会存储状态本身，具体保存工作由状态后端来完成
+    
