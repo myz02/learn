@@ -54,6 +54,21 @@
 --更新有状态应用
        生成保存点，停止应用，重启新版本
        更新有状态应用分三种情况：添加有状态或无状态算子、应用中移除某个状态、改变状态语义或者修改算子类型
+       --移除某个状态
+            flink默认情况下，不允许无法将保存点的状态进行恢复的应用启动，但是可以禁用这一安全检查。
+        --修改算子状态
+            假设将valuestate从string改成double，状态存储需要序列化，那使用doubleser..反序列化stringser...序列化的数据会失败。
+            如果数据类型为avro类型，就可以，新版本的不了解
+
+--可查询式状态
+        将状态和其它应用共享
+    --查询式服务架构
+        pass
+    --暴露可查询状态
+        ```ValueStateDescriptor<Integer> descriptor = new ValueStateDescriptor<>("value", Integer.class);
+           descriptor.setQueryable("lastTemperature");  //／启用可询式状态并设其外标识符
+    --从外部系统查询状态
+        pass
        
         
         
