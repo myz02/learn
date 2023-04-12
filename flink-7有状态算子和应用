@@ -1,0 +1,32 @@
+--实现状态函数
+--在runtimecontext中声明键值分区状态
+    状态原语主要分：valueState、ListState、MapState、ReducingState、AggregatingState
+    主要是在rich函数中open方法进行初始化
+    ```private ValueState<Integer> valueState;
+       valueState = getRuntimeContext().getState(new ValueStateDescriptor<>("value", Integer.class));
+    状态引用对象只提供用于状态访问的接口，而不会存储状态本身，具体保存工作由状态后端来完成
+    
+--接收检查点完成通知
+    实现CheckpointListener接口，notifyCheckpointAborted(long checkpointId)方法会在jobmanager将检查点注册为已完成时调用
+    flink不保证每个完成的检查点都会调用到这个方法
+
+--状态的故障恢复
+    ```env.enableCheckpointing(100000L);//开启checkpoint
+    检查点间隔时间太小，频繁的checkpoint会造成较大的开销，但是恢复的数据量较小，恢复速度会更快
+    
+--状态的维护
+    能够将状态迁移到一个新版本或者重新分配到不同数量的算子
+    flink利用保存点机制对状态进行维护，需要在初始版本指定好两个参数：算子唯一表示和最大并行度(只针对键值分区状态的算子)
+    唯一标识和最大并行度会固化到保存点，不可更改，如果新版本两个参数发生变化，就无法从之前的保存点启动，就会丢弃状态从头开始运行。
+
+--指定算子唯一标识
+    标识会将保存点中的状态映射到应用对应的算子，只有应用和保存点中的算子标识一样，状态才能顺利恢复。
+    ```source.map(null).uid("testUid");
+    
+--算子最大并行度
+    ```env.setMaxParallelism(512);
+    ```source.map(null).uid("testUid").setMaxParallelism(1024);
+    算子的默认最大并行度取决于应用首个版本中算子的并行度，如果并行度小于等于128，则最大并行度会设置为128，大于128另说
+    
+--性能和鲁棒性
+    
