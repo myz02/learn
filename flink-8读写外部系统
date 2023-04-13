@@ -20,4 +20,19 @@
       run()只会在flink中调用一次，后者会专门为它开一个线程，该线程会不断循环读取或接收数据源的数据并发出。
      cancel()会在应用关闭时调用，run()方法会在cancel调用后立即终止。
           
-          
+--重放数据源
+   如文件流可以提供文件流读取的偏移、kafka可提供主题下每个分区的偏移地址，并允许设置分区读取位置
+   检查点持久化所有当前读取的位置，故障恢复时会读取偏移量，如果在没状态情况下启动，读取偏移需要被设成默认值，可重置数据源函数需要时间checkpointfunction接口
+    并将读取偏移和相关元数据信息存入算子列表状态或算子联合列表状态中。
+   必须要保证单独线程运行的sourcefunction.run()不会在检查点过程中向前推送偏移量和数据，为此可以sourcecontext.getcheckpointLock方法获取锁对象
+   ```synchronized (sourceContext.getCheckpointLock()) {//具体的读取数据源的实现}
+
+--数据源函数、时间戳和水位线
+   sourceContext提供了两个方法：sourceContext.collectWithTimestamp(O,L)  和  sourceContext.emitWatermark(Watermark)
+     collectWithTimestamp用来发出记录和与之关联的时间戳
+     emitWatermark用来发出传入的水位线
+   如果数据源并行度为2，要读取kafka的6个分区，每个并行度要去读取3个分区，混合数据记录可能导致事件时间戳进一步延迟，从而产生更多的迟到记录
+   为了避免这种情况可以每个数据流分区独立生成水位线，将它们中最小值作为数据流的水位线发出，这样可以利用分区内有序，避免不必要的迟到数据
+   但是实例一旦空闲下来，就有可能阻碍全局水位线前进，若是收不到输入记录，就不会发出新的水位线（应用中引入shuffle操作如keyby和rebalance等单个算子水位线停滞会导致应用停止工作）
+   flink提供了一个机制将数据源函数标记为暂时空闲，flink的水位线机制会忽略掉所有空闲数据流分区，数据流开始接收记录就会恢复活动状态
+   ```sourceContext.markAsTemporarilyIdle(); //将数据源函数标记为暂时空闲
