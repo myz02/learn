@@ -1,0 +1,4 @@
+spark-广播变量
+将数据发送个各个executor一份，使用的比特协议（人人为我我为人人，把数据分块，如果其中某个executor有块1，需要块1的executor都可以找它要）
+实现map join的方式（广播变量。缓存文件(sc.addfile)。闭包）
+闭包是每个task都是复制一份
