@@ -12,3 +12,9 @@ rdd的五大属性
 
 rdd是什么：弹性分布式数据集，是个数据集但是里面没有数据，想要获取它代表的数据就去调分区器
 为什么是懒加载：转换算子就是调用父rdd的迭代器生成一个新的迭代器，只有行动算子才回去遍历迭代器
+
+Dependency依赖关系
+用会触发shuffle的算子一定会触发一个宽依赖吗，比如reducebykey
+    val rdd4: RDD[(String, Int)] = rdd3.partitionBy(new HashPartitioner(3))
+    val rdd5: RDD[(String, Int)] = rdd4.reduceByKey(_ + _, 3)
+先根据hash进行分区，再调用reducebykey(默认用hash分区),这样就完全没有必要再触发shuffle,rdd4和rdd5都会在同一份stage中
