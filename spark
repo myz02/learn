@@ -32,4 +32,9 @@ Dependency依赖关系
  如果存在拥有分区器的父rdd & （父rdd中的最大分区数/父rdd中的最大分区器的分区数<10倍 || 默认分区数<=最大分区器的分区数）
   就用上游最大分区器作为子RDD的分区器
   否则创建一个hashpartitioner分区器，分区数=默认分区数，其次就是上游rdd最大分区数
- 
+
+task在spark内分两种：shuffleMapTask和resultTask
+ 最后一个stage的task都是resultTask，其余stage中的task都是shuffleMapTask
+ 都是调用final迭代器，不过shufflemaptask要进行shuffle，result task负责返回计算结果
+ shuffle后的第一个rdd的computer函数是rdd.iter.shufflereader
+
