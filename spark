@@ -22,3 +22,4 @@ Dependency依赖关系
 默认分区 ：spark.default.parallelism优先级最高
  local模式下：总核数，最低为1
  分布式模式下：总核数，最低为2
+ 数据源的分区数看数据源读取器
