@@ -18,6 +18,9 @@ Dependency依赖关系
     val rdd4: RDD[(String, Int)] = rdd3.partitionBy(new HashPartitioner(3))
     val rdd5: RDD[(String, Int)] = rdd4.reduceByKey(_ + _, 3)
 先根据hash进行分区，再调用reducebykey(默认用hash分区),这样就完全没有必要再触发shuffle,rdd4和rdd5都会在同一份stage中
+只有在父rdd和子rdd的分区器和分区数相同，就不会触发shuffle(前提是父rdd没有弄丢分区器，
+                                                      比如repartition会调用coalesce，然后调用coalescedRDD,再调用map，map不会保留父rdd的分区器)
+
 
 默认分区 ：spark.default.parallelism优先级最高
  local模式下：总核数，最低为1
@@ -28,5 +31,5 @@ Dependency依赖关系
 默认分区器策略：
  如果存在拥有分区器的父rdd & （父rdd中的最大分区数/父rdd中的最大分区器的分区数<10倍 || 默认分区数<=最大分区器的分区数）
   就用上游最大分区器作为子RDD的分区器
-  否则创建一个hashpartitioner分区器，分区数=默认分区数
+  否则创建一个hashpartitioner分区器，分区数=默认分区数，其次就是上游rdd最大分区数
  
