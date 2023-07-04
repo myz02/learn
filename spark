@@ -18,3 +18,7 @@ Dependency依赖关系
     val rdd4: RDD[(String, Int)] = rdd3.partitionBy(new HashPartitioner(3))
     val rdd5: RDD[(String, Int)] = rdd4.reduceByKey(_ + _, 3)
 先根据hash进行分区，再调用reducebykey(默认用hash分区),这样就完全没有必要再触发shuffle,rdd4和rdd5都会在同一份stage中
+
+默认分区 ：spark.default.parallelism优先级最高
+ local模式下：总核数，最低为1
+ 分布式模式下：总核数，最低为2
