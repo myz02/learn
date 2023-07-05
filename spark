@@ -38,3 +38,18 @@ task在spark内分两种：shuffleMapTask和resultTask
  都是调用final迭代器，不过shufflemaptask要进行shuffle，result task负责返回计算结果
  shuffle后的第一个rdd的computer函数是rdd.iter.shufflereader
 
+
+spark on yarn cluster模式提交流程
+1.提交命令后创建一个sparkSubmit进程
+2.向resourcemanager申请创建application
+3.创建容器
+4.返回application id和可用资源
+5.将jar包配置文件等上传到hdfs
+6.设置容器的env
+7.根据env准备容器的环境(刚刚上传到hdfs的文件)
+8.发送启动applicationmaster的shell命令
+9.applicationmaster启动driver线程，初始化sparkcontext
+10.applicationmaster申请运行excutor的容器
+11.启动excutor容器，
+12.excutor想driver注册自己
+13.driver的taskScheduler发送task对象
