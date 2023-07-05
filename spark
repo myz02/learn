@@ -38,6 +38,13 @@ task在spark内分两种：shuffleMapTask和resultTask
  都是调用final迭代器，不过shufflemaptask要进行shuffle，result task负责返回计算结果
  shuffle后的第一个rdd的computer函数是rdd.iter.shufflereader
 
+spark在运行中的各个角色
+sparkSubmit：应用提交的客户端程序
+Driver:创建并利用sparkcontext进行stage划分，生成taskset，调度task
+applicationMaster(cluster模式):yarn的规范中要求的用户主管进程，申请容器启动excutor进程，以及调用driver线程功能
+EexcutorLauncher(Client模式):简化后的APPmaster，负责向yarn申请容器来启动excutor进程
+Excutor:负责调用task的runtask方法来运行task的逻辑
+Task(对象):封装了对FinalRDD的迭代器进行循环调用的逻辑
 
 spark on yarn cluster模式提交流程
 1.提交命令后创建一个sparkSubmit进程
