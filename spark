@@ -60,3 +60,29 @@ spark on yarn cluster模式提交流程
 11.启动excutor容器，
 12.excutor想driver注册自己
 13.driver的taskScheduler发送task对象
+
+
+
+spark sql的运行原理
+1.元数据管理 SessionCatalog
+    SessionCatalog主要用于各种函数资源信息和元数据信息(数据库，数据表，数据视图，数据分区和函数等)的统一管理
+    创建临时表或者视图，其实是往SessionCatalog注册，进行逻辑计划元数据绑定时，也是从catalog中获取数据
+2.SQL解析成逻辑计划
+    当调用SparkSession的SQL或者SQLContext的sql方法，就会使用SparkSqlParser进行SQL解析
+    主要分两个步骤生成逻辑计划
+     1,词法解析：负责将token分组成符号类
+     2,语法解析：构建一棵分析树或者抽象语法树
+3.元数据绑定逻辑计划
+    使用事先定义好的Rule以及SessionCatalog等信息对逻辑计划进行元数据绑定
+4.优化逻辑计划
+    优化器也是会定义一套Rules，利用这些Rule对逻辑计划和Exeperssion进行迭代处理，从而使树的节点进行合并和优化
+    1，谓词下推
+    2，列裁剪
+    3，常量替换
+    4，常量累加
+5.使用SparkPlanner生成物理计划
+    SparkPlanner使用Planning Strategies，对优化后的逻辑计划进行转换，生成可以执行的物理计划SparkPlan
+6.从物理计划获取inputRdd执行
+    从物理计划上，获取inputRdd
+    从物理计划上，生成全阶段代码，并编译反射出迭代器newBitIterator的clazz[真名：bufferedRowIterator]
+    然后将inputRDD做一个transformation得到最终要执行的rdd
